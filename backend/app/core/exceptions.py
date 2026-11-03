@@ -50,7 +50,7 @@ class NotFoundException(AppException):
 
 
 class ValidationException(AppException):
-    status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+    status_code = 422  # HTTP_422_UNPROCESSABLE_CONTENT (avoids starlette version mismatch)
     error_code = "VALIDATION_ERROR"
 
     def __init__(self, message: str = "Validation failed", details: Optional[Dict[str, Any]] = None):
@@ -166,7 +166,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             })
         logger.info(f"Validation error on {request.url.path}", extra={"request_id": req_id})
         return format_error_response(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            status_code=422,  # HTTP_422_UNPROCESSABLE_CONTENT
             error_code="VALIDATION_ERROR",
             message="Input data validation failed",
             details={"errors": clean_errors},

@@ -104,7 +104,7 @@ services:
         value: "10/minute"
 
       - key: ALLOWED_ORIGINS
-        value: '["https://ai-interview-frontend.onrender.com"]'
+        value: '["https://ai-interview-frontend.onrender.com", "https://ai-interview-frontend-1bqo.onrender.com"]'
 
     healthCheckPath: /api/v1/health
 
@@ -118,7 +118,7 @@ services:
 
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://ai-interview-backend.onrender.com
+        value: https://ai-interview-backend-1bqo.onrender.com/api/v1
 
     routes:
       - type: rewrite
