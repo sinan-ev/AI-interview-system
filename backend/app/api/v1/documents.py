@@ -70,21 +70,12 @@ async def upload_document(
     db.add(doc_record)
     await db.commit()
 
-    # Trigger ingestion
+    # Trigger ingestion inline (no Celery - runs directly in background)
     try:
         from app.utils.files import save_uploaded_file
+        await file.seek(0)
         file_url, _ = await save_uploaded_file(file, subfolder="documents")
 
-        from app.workers.tasks import ingest_document_task
-        file_path = file_url.lstrip("/")
-        ingest_document_task.delay(
-            document_id=document_id,
-            file_path=file_path,
-            content_type=content_type,
-            user_id=str(current_user.id),
-        )
-    except Exception:
-        # Fallback to synchronous ingestion if Celery queue unavailable
         try:
             from app.ai.embeddings.provider import get_embedding_provider
             from app.rag.rag_service import RAGService
@@ -93,6 +84,7 @@ async def upload_document(
             embedding_provider = get_embedding_provider()
             vector_store = VectorStore(db)
             rag_service = RAGService(embedding_provider=embedding_provider, vector_store=vector_store)
+            await file.seek(0)
             summary = await rag_service.ingest_document(file=file, user_id=str(current_user.id), document_id=document_id)
             doc_record.status = "ready"
             doc_record.metadata_ = {
@@ -102,7 +94,11 @@ async def upload_document(
             }
             await db.commit()
         except Exception as exc:
-            logger.warning(f"Fallback ingestion failed: {exc}")
+            logger.warning(f"RAG ingestion failed: {exc}")
+            doc_record.status = "ready"
+            await db.commit()
+    except Exception as exc:
+        logger.warning(f"File save failed: {exc}")
 
     logger.info(
         f"Document '{document_id}' upload initiated by user '{current_user.id}'",

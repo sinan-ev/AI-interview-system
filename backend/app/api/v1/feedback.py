@@ -51,19 +51,7 @@ async def get_interview_feedback(
     feedback = fb_result.fetchone()
 
     if not feedback:
-        # Trigger background feedback generation
-        try:
-            from app.workers.tasks import generate_feedback_task
-            generate_feedback_task.delay(
-                interview_id=interview_id,
-                user_id=str(current_user.id),
-            )
-            return create_api_response(
-                data={"status": "generating", "interview_id": interview_id},
-                message="Feedback is being generated. Please check back shortly.",
-            )
-        except Exception:
-            raise NotFoundException("Feedback not yet available for this interview.")
+        raise NotFoundException("Feedback not yet available for this interview. Complete the interview and submit answers first.")
 
     return create_api_response(
         data={

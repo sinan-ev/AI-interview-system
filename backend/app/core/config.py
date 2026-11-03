@@ -31,11 +31,6 @@ class Settings(BaseSettings):
     DB_MAX_OVERFLOW: int = 10
     DB_ECHO: bool = False
 
-    # Redis & Celery
-    REDIS_URL: str = "redis://localhost:6379/0"
-    CELERY_BROKER_URL: str = "redis://localhost:6379/1"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
-
     # Security & JWT Authentication
     JWT_SECRET: str = "dev-jwt-secret-replace-in-production-min-32-chars-abc"
     JWT_ALGORITHM: str = "HS256"
