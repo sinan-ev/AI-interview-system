@@ -43,7 +43,14 @@ if not is_sqlite:
 else:
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 
-engine = create_async_engine(settings.DATABASE_URL, **engine_kwargs)
+# Render injects postgres:// or postgresql:// - ensure asyncpg driver is specified
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
+    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+engine = create_async_engine(db_url, **engine_kwargs)
 
 # Async session factory
 AsyncSessionLocal = async_sessionmaker(
