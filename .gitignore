@@ -57,3 +57,10 @@ Thumbs.db
 .pytest_cache/
 htmlcov/
 .hypothesis/
+
+# Local SQLite dev database
+backend/ai_interview.db
+# Coverage reports
+backend/.coverage
+backend/htmlcov/
+

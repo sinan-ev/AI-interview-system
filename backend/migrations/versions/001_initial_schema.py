@@ -207,7 +207,7 @@ def upgrade() -> None:
         sa.Column('chunk_index', sa.Integer(), nullable=False),
         sa.Column('content', sa.Text(), nullable=False),
         sa.Column('metadata', sa.JSON(), nullable=False),
-        sa.Column('embedding', Vector(1536) if conn.dialect.name == "postgresql" else sa.JSON(), nullable=True),
+        sa.Column('embedding', sa.JSON(), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(['document_id'], ['documents.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id')

@@ -52,7 +52,7 @@ class VectorStore:
 
         # Upsert: if chunk_id already exists, update embedding; else insert
         upsert_sql = sql_text("""
-            INSERT INTO document_chunks (id, document_id, text_content, chunk_index, embedding, created_at, updated_at)
+            INSERT INTO document_chunks (id, document_id, content, chunk_index, embedding, created_at, updated_at)
             VALUES (:chunk_id, :document_id, :text, :chunk_index, :embedding, NOW(), NOW())
             ON CONFLICT (id) DO UPDATE SET
                 embedding = EXCLUDED.embedding,
@@ -108,7 +108,7 @@ class VectorStore:
             SELECT
                 dc.id AS chunk_id,
                 dc.document_id,
-                dc.text_content,
+                dc.content,
                 dc.chunk_index,
                 1 - (dc.embedding <=> CAST(:query_embedding AS vector)) AS similarity_score
             FROM document_chunks dc
@@ -127,7 +127,7 @@ class VectorStore:
                 VectorSearchResult(
                     chunk_id=str(row.chunk_id),
                     document_id=str(row.document_id),
-                    text=row.text_content,
+                    text=row.content,
                     chunk_index=row.chunk_index,
                     similarity_score=float(row.similarity_score),
                 )

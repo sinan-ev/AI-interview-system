@@ -254,12 +254,6 @@ def ingest_document_task(
                     vector_store=vector_store,
                 )
 
-                # Create a minimal UploadFile-like object
-                from unittest.mock import MagicMock
-                mock_file = MagicMock()
-                mock_file.content_type = content_type
-                mock_file.read = asyncio.coroutine(lambda: file_bytes)
-
                 # Process using processor directly (avoid UploadFile dependency)
                 processor = DocumentProcessor()
                 if content_type == "application/pdf":
@@ -338,64 +332,22 @@ def generate_feedback_task(self, interview_id: str, user_id: str) -> Dict[str, A
                 if not evaluations:
                     return {"status": "no_evaluations", "interview_id": interview_id}
 
-                # Calculate aggregated metrics
                 total = len(evaluations)
-                avg_technical = sum(e.technical_score for e in evaluations) / total
-                avg_communication = sum(e.communication_score for e in evaluations) / total
-                avg_grammar = sum(e.grammar_score for e in evaluations) / total
-                avg_fluency = sum(e.fluency_score for e in evaluations) / total
-                avg_confidence = sum(e.confidence_estimate for e in evaluations) / total
                 avg_overall = sum(e.overall_score for e in evaluations) / total
 
-                # Aggregate qualitative feedback
-                all_strengths = []
-                all_weaknesses = []
-                all_missing = []
-                for e in evaluations:
-                    if e.strengths:
-                        all_strengths.extend(e.strengths[:2])
-                    if e.weaknesses:
-                        all_weaknesses.extend(e.weaknesses[:2])
-                    if e.missing_concepts:
-                        all_missing.extend(e.missing_concepts[:3])
-
-                # Save to feedback table
-                feedback_id = str(uuid.uuid4())
+                # Insert one summary feedback row
                 now = datetime.now(timezone.utc)
                 await db.execute(
                     sql_text("""
-                        INSERT INTO feedback (
-                            id, interview_id, user_id,
-                            average_technical_score, average_communication_score,
-                            average_grammar_score, average_fluency_score,
-                            average_confidence_score, overall_interview_score,
-                            strengths_summary, weaknesses_summary, missing_concepts_summary,
-                            total_questions_evaluated, created_at, updated_at
-                        ) VALUES (
-                            :id, :interview_id, :user_id,
-                            :avg_tech, :avg_comm, :avg_gram, :avg_flu,
-                            :avg_conf, :avg_overall,
-                            :strengths, :weaknesses, :missing,
-                            :total, :now, :now
-                        ) ON CONFLICT (interview_id) DO UPDATE SET
-                            average_technical_score = EXCLUDED.average_technical_score,
-                            overall_interview_score = EXCLUDED.overall_interview_score,
-                            updated_at = EXCLUDED.updated_at
+                        INSERT INTO feedback (id, interview_id, category, severity, feedback_text, created_at)
+                        VALUES (:id, :interview_id, :category, :severity, :feedback_text, :now)
                     """),
                     {
-                        "id": feedback_id,
+                        "id": str(uuid.uuid4()),
                         "interview_id": interview_id,
-                        "user_id": user_id,
-                        "avg_tech": round(avg_technical, 2),
-                        "avg_comm": round(avg_communication, 2),
-                        "avg_gram": round(avg_grammar, 2),
-                        "avg_flu": round(avg_fluency, 2),
-                        "avg_conf": round(avg_confidence, 2),
-                        "avg_overall": round(avg_overall, 2),
-                        "strengths": list(set(all_strengths))[:5],
-                        "weaknesses": list(set(all_weaknesses))[:5],
-                        "missing": list(set(all_missing))[:10],
-                        "total": total,
+                        "category": "overall",
+                        "severity": "info",
+                        "feedback_text": f"Interview completed. Overall score: {round(avg_overall, 2)}. Questions evaluated: {total}.",
                         "now": now,
                     }
                 )
