@@ -50,7 +50,7 @@ class NotFoundException(AppException):
 
 
 class ValidationException(AppException):
-    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+    status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
     error_code = "VALIDATION_ERROR"
 
     def __init__(self, message: str = "Validation failed", details: Optional[Dict[str, Any]] = None):
