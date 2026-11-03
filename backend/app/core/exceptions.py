@@ -166,7 +166,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             })
         logger.info(f"Validation error on {request.url.path}", extra={"request_id": req_id})
         return format_error_response(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             error_code="VALIDATION_ERROR",
             message="Input data validation failed",
             details={"errors": clean_errors},
