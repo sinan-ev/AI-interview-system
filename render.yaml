@@ -59,9 +59,9 @@ services:
       - key: REFRESH_TOKEN_EXPIRE_DAYS
         value: "7"
       - key: LLM_PROVIDER
-        value: mock             # Change to: openai / anthropic / google
+        value: mock
       - key: LLM_API_KEY
-        sync: false             # Set via Render Dashboard → Environment
+        sync: false
       - key: LLM_MODEL
         value: gpt-4o
       - key: LLM_TEMPERATURE
@@ -94,6 +94,7 @@ services:
 
   # ──────────────────────────────────────────────
   # 2.  Celery Worker (Background Worker)
+  # FIX: Docker runtime uses dockerCommand, not startCommand
   # ──────────────────────────────────────────────
   - type: worker
     name: ai-interview-worker
@@ -102,7 +103,7 @@ services:
     dockerContext: ./backend
     region: oregon
     plan: free
-    startCommand: celery -A app.workers.celery_app.celery worker --loglevel=info --concurrency=2 -Q evaluation_queue,speech_queue,rag_queue,feedback_queue,celery
+    dockerCommand: celery -A app.workers.celery_app.celery worker --loglevel=info --concurrency=2 -Q evaluation_queue,speech_queue,rag_queue,feedback_queue,celery
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -146,6 +147,7 @@ services:
 
   # ──────────────────────────────────────────────
   # 3.  React Frontend (Static Site)
+  # FIX: Static sites cannot have a region field
   # ──────────────────────────────────────────────
   - type: web
     name: ai-interview-frontend
@@ -153,7 +155,6 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    region: oregon
     plan: free
     envVars:
       - key: VITE_API_BASE_URL
@@ -165,10 +166,11 @@ services:
 
   # ──────────────────────────────────────────────
   # 4.  Redis (In-memory DB / Broker)
+  # FIX: Redis must specify ipAllowList
   # ──────────────────────────────────────────────
   - type: redis
     name: ai-interview-redis
     region: oregon
     plan: free
     maxmemoryPolicy: allkeys-lru
-
+    ipAllowList: []
