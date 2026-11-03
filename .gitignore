@@ -1,0 +1,59 @@
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+*.egg-info/
+dist/
+build/
+*.egg
+MANIFEST
+
+# Database & local files
+backend/ai_interview.db
+backend/uploads/audio/*
+backend/uploads/documents/*
+!backend/uploads/audio/.gitkeep
+!backend/uploads/documents/.gitkeep
+
+# Environment files (NEVER commit real secrets)
+.env
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Test / Coverage
+.pytest_cache/
+htmlcov/
+.hypothesis/
