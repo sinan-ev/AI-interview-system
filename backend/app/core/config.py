@@ -77,6 +77,21 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173"
     ]
 
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v):
+        if isinstance(v, str):
+            if v.startswith("[") and v.endswith("]"):
+                import json
+                try:
+                    return json.loads(v)
+                except Exception:
+                    pass
+            return [i.strip() for i in v.split(",") if i.strip()]
+        elif isinstance(v, list):
+            return v
+        return []
+
     # Evaluator & Rubric Versions for reproducible scoring
     EVALUATOR_VERSION: str = "1.0.0"
     RUBRIC_VERSION: str = "1.0.0"
